@@ -94,16 +94,30 @@ Verify that borrowing, returning, and filtering produce the expected results.
 ## Project Structure
 
 ```text
-Library-Management-System/
+NodeProject/
+│
+├── data/
+│   └── books.json
+│
+├── public/
+│   └── index.html
+│
 ├── src/
-│   ├── index.ts
 │   ├── models.ts
-│   └── storage.ts
+│   ├── storage.ts
+│   ├── server.ts
+│   └── index.ts
+│
 ├── dist/
-├── books.json
+│   ├── models.js
+│   ├── storage.js
+│   ├── server.js
+│   └── index.js
+│
+├── node_modules/
+│
 ├── package.json
 ├── package-lock.json
 ├── tsconfig.json
-├── .gitignore
-└── README.md
+└── .gitignore
 ```
