@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Library Management</title>
+</head>
+<body>
+    <h1>Library Management System</h1>
+
+    <p id="message"></p>
+
+    <h2>Add a Book</h2>
+
+    <form id="bookForm">
+        <label>Book Title:</label>
+        <input type="text" id="title" required>
+        <br><br>
+
+        <label>Author:</label>
+        <input type="text" id="author" required>
+        <br><br>
+
+        <label>Category:</label>
+        <input type="text" id="category" required>
+        <br><br>
+
+        <label>Publication Year:</label>
+        <input type="number" id="year" min="1" max="2100" required>
+        <br><br>
+
+        <button type="submit">Add Book</button>
+    </form>
+
+    <h2>All Books</h2>
+
+    <button type="button" onclick="loadBooks()">Refresh Books</button>
+
+    <br><br>
+
+    <table border="1" cellpadding="8">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Title</th>
+                <th>Author</th>
+                <th>Category</th>
+                <th>Year</th>
+                <th>Status</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody id="bookTable"></tbody>
+    </table>
+
+    <script>
+        const API = "http://localhost:3000";
+
+        async function apiRequest(url, options = {}) {
+            const response = await fetch(API + url, options);
+            const data = await response.json();
+
+            if (!response.ok) {
+                throw new Error(data.message || data.error || "Request failed");
+            }
+
+            return data;
+        }
+
+        function showMessage(message) {
+            document.getElementById("message").textContent = message;
+        }
+
+        async function loadBooks() {
+            try {
+                const books = await apiRequest("/books");
+                const table = document.getElementById("bookTable");
+
+                table.replaceChildren();
+
+                books.forEach(book => {
+                    const row = document.createElement("tr");
+
+                    [
+                        book.id,
+                        book.title,
+                        book.author,
+                        book.category,
+                        book.publicationYear,
+                        book.status
+                    ].forEach(value => {
+                        const cell = document.createElement("td");
+                        cell.textContent = value;
+                        row.appendChild(cell);
+                    });
+
+                    const actions = document.createElement("td");
+
+                    const issueButton = document.createElement("button");
+                    issueButton.textContent = "Issue";
+                    issueButton.disabled = book.status === "borrowed";
+                    issueButton.onclick = () => changeStatus(book.id, "borrow");
+
+                    const returnButton = document.createElement("button");
+                    returnButton.textContent = "Return";
+                    returnButton.disabled = book.status !== "borrowed";
+                    returnButton.onclick = () => changeStatus(book.id, "return");
+
+                    // const updateButton = document.createElement("button");
+                    // updateButton.textContent = "Update";
+                    // updateButton.onclick = () => updateBook(book);
+
+                    const deleteButton = document.createElement("button");
+                    deleteButton.textContent = "Delete";
+                    deleteButton.onclick = () => deleteBook(book.id);
+
+                    actions.append(
+                        issueButton, document.createTextNode(" "),
+                        returnButton, document.createTextNode(" "),
+                        // updateButton, document.createTextNode(" "),
+                        deleteButton
+                    );
+
+                    row.appendChild(actions);
+                    table.appendChild(row);
+                });
+
+                if (books.length === 0) {
+                    const row = document.createElement("tr");
+                    const cell = document.createElement("td");
+                    cell.colSpan = 7;
+                    cell.textContent = "No books found.";
+                    row.appendChild(cell);
+                    table.appendChild(row);
+                }
+
+                showMessage("Books loaded successfully.");
+            } catch (error) {
+                showMessage("Error loading books: " + error.message);
+            }
+        }
+
+        document.getElementById("bookForm").addEventListener("submit", async event => {
+            event.preventDefault();
+
+            const book = {
+                title: document.getElementById("title").value.trim(),
+                author: document.getElementById("author").value.trim(),
+                category: document.getElementById("category").value.trim(),
+                publicationYear: Number(document.getElementById("year").value)
+            };
+
+            if (!book.title || !book.author || !book.category) {
+                showMessage("Please fill in all fields.");
+                return;
+            }
+
+            try {
+                await apiRequest("/books", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(book)
+                });
+
+                document.getElementById("bookForm").reset();
+                showMessage("Book added successfully.");
+                await loadBooks();
+            } catch (error) {
+                showMessage("Error adding book: " + error.message);
+            }
+        });
+
+        async function changeStatus(id, action) {
+            try {
+                await apiRequest(`/books/${encodeURIComponent(id)}/${action}`, {
+                    method: "POST"
+                });
+
+                showMessage(action === "borrow"
+                    ? "Book issued successfully."
+                    : "Book returned successfully.");
+
+                await loadBooks();
+            } catch (error) {
+                showMessage("Error: " + error.message);
+            }
+        }
+
+        async function updateBook(book) {
+            const title = prompt("Enter book title:", book.title);
+            if (title === null) return;
+
+            const author = prompt("Enter author:", book.author);
+            if (author === null) return;
+
+            const category = prompt("Enter category:", book.category);
+            if (category === null) return;
+
+            const yearInput = prompt("Enter publication year:", book.publicationYear);
+            if (yearInput === null) return;
+
+            const publicationYear = Number(yearInput);
+
+            if (
+                !title.trim() ||
+                !author.trim() ||
+                !category.trim() ||
+                !Number.isInteger(publicationYear) ||
+                publicationYear < 1 ||
+                publicationYear > 2100
+            ) {
+                showMessage("Please enter valid book details.");
+                return;
+            }
+
+            try {
+                await apiRequest(`/books/${encodeURIComponent(book.id)}`, {
+                    method: "PATCH",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        title: title.trim(),
+                        author: author.trim(),
+                        category: category.trim(),
+                        publicationYear
+                    })
+                });
+
+                showMessage("Book updated successfully.");
+                await loadBooks();
+            } catch (error) {
+                showMessage("Error updating book: " + error.message);
+            }
+        }
+
+        async function deleteBook(id) {
+            if (!confirm("Are you sure you want to delete this book?")) {
+                return;
+            }
+
+            try {
+                await apiRequest(`/books/${encodeURIComponent(id)}`, {
+                    method: "DELETE"
+                });
+
+                showMessage("Book deleted successfully.");
+                await loadBooks();
+            } catch (error) {
+                showMessage("Error deleting book: " + error.message);
+            }
+        }
+
+        loadBooks();
+    </script>
+</body>
+</html>

@@ -1,0 +1,32 @@
+[
+  {
+    "id": 1,
+    "title": "The Great Gatsby",
+    "author": "F. Scott Fitzgerald",
+    "category": "Fiction",
+    "publicationYear": 1925,
+    "status": "available",
+    "createdAt": "2026-10-25T10:00:00.000Z",
+    "updatedAt": "2026-10-25T20:39:32.901Z"
+  },
+  {
+    "id": 2,
+    "title": "To Kill a Mockingbird",
+    "author": "Harper Lee",
+    "category": "Classic",
+    "publicationYear": 1960,
+    "status": "available",
+    "createdAt": "2026-10-25T10:05:00.000Z",
+    "updatedAt": "2026-10-25T10:05:00.000Z"
+  },
+  {
+    "id": 3,
+    "title": "Master Your Emotions",
+    "author": "John Doe",
+    "category": "Self-help",
+    "publicationYear": 2021,
+    "status": "available",
+    "createdAt": "2026-10-25T20:40:27.031Z",
+    "updatedAt": "2026-10-25T20:40:27.031Z"
+  }
+]
