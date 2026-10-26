@@ -141,7 +141,8 @@ const server = createServer(async (req, res) => {
     return;
   }
 
-  // Match /books/:id and /books/:id/borrow or /return
+  // Match /books/:id and /books/:id/borrow /return
+  // Challenge: We have to convert id to number. fromramdomUUID convert to numbers like 1,2,3,..
   const match = path.match(/^\/books\/([^/]+)$/);
   const action = path.match(/^\/books\/([^/]+)\/(borrow|return)$/);
   const id = match?.[1] ?? action?.[1];
@@ -251,7 +252,7 @@ const server = createServer(async (req, res) => {
       return;
     }
 
-    books.splice(index, 1);
+    books.splice(index, 1); // Give remaining files
 
     if (!(await saveFile())) return;
 
