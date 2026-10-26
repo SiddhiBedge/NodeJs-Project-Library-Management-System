@@ -14,7 +14,7 @@ const server = createServer(async (req, res) => {
   function send(status: number, data: unknown): void {
     res.writeHead(status, {
       "Content-Type": "application/json",
-      "Access-Control-Allow-Origin": "*",
+      "Access-Control-Allow-Origin": "*", // Challenge: All website origin can allow to use your browser
       "Access-Control-Allow-Methods": "GET, POST, PATCH, DELETE, OPTIONS",
       "Access-Control-Allow-Headers": "Content-Type"
     });
@@ -42,6 +42,7 @@ const server = createServer(async (req, res) => {
     return JSON.parse(body);
   }
 
+  // Check the server status
   if (method === "GET" && path === "/health") {
     send(200, { message: "Library server is running" });
     return;
@@ -68,7 +69,7 @@ const server = createServer(async (req, res) => {
     }
   }
 
-  // GET /books
+  // GET /books : To get all books 
   if (method === "GET" && path === "/books") {
     send(200, books);
     return;
@@ -84,7 +85,8 @@ const server = createServer(async (req, res) => {
       send(400, { error: "Invalid JSON body" });
       return;
     }
-
+    
+    // Challenge : If we don't specify typeOf body it unables to add the data 
     if (
       typeof body !== "object" ||
       body === null ||
@@ -116,10 +118,7 @@ const server = createServer(async (req, res) => {
       publicationYear: body.publicationYear
     };
 
-    const nextId =
-      books.length === 0
-        ? 1
-        : Math.max(...books.map((book) => book.id)) + 1;
+    const nextId = books.length === 0 ? 1 : Math.max(...books.map((book) => book.id)) + 1;
 
     const now = new Date().toISOString();
 
